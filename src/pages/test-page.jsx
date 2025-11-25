@@ -2,6 +2,7 @@ import styled from "styled-components";
 import { colors } from "@/styles/colors";
 import { font } from "@/styles/font";
 import media from "@/styles/media";
+import BottomNavigation from "@/components/BottomNavigation";
 
 const Container = styled.div`
   padding: 40px 20px;
@@ -52,6 +53,9 @@ export default function TestPage() {
         <br />
         데스크톱(1024px~): 보라색 배경, 큰 폰트
       </ResponsiveBox>
+      <BottomNavigation>
+
+      </BottomNavigation>
     </Container>
   );
 }
