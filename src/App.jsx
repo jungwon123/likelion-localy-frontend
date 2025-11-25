@@ -1,7 +1,11 @@
 import { BrowserRouter, Routes, Route } from "react-router";
 import { GlobalStyle } from "@/styles/global-style";
 import GlobalLayout from "@/shared/components/global-layout";
-import TestPage from "@/pages/test-page";
+import HomePage from "@/pages/Home";
+import ChatPage from "@/pages/Chat";
+import LocalPage from "@/pages/Local";
+import FeedbackPage from "@/pages/Feedback";
+import MypagePage from "@/pages/Mypage";
 
 function App() {
   return (
@@ -10,7 +14,11 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route element={<GlobalLayout />}>
-            <Route path="/" element={<TestPage />} />
+            <Route path="/" element={<HomePage />} />
+            <Route path="/chat" element={<ChatPage />} />
+            <Route path="/local" element={<LocalPage />} />
+            <Route path="/feedback" element={<FeedbackPage />} />
+            <Route path="/mypage" element={<MypagePage />} />
           </Route>
         </Routes>
       </BrowserRouter>
