@@ -17,6 +17,7 @@ export const BottomNavigationContainer = styled.div`
   display: flex;
   justify-content: space-around;
   align-items: center;
+  z-index: 1000;
 `;
 
 const BottomNavigationContent = styled.div`

@@ -1,6 +1,22 @@
 import { css } from "styled-components";
 
 export const font = {
+  bold32: css`
+    font-size: 32px;
+    font-weight: 700;
+  `,
+  semibold32: css`
+    font-size: 32px;
+    font-weight: 600;
+  `,
+  medium32: css`
+    font-size: 32px;
+    font-weight: 500;
+  `,
+  regular32: css`
+    font-size: 32px;
+    font-weight: 400;
+  `,
   bold28: css`
     font-size: 28px;
     font-weight: 700;

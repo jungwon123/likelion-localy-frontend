@@ -61,11 +61,11 @@ export default function PlaceCarousel({
         style={{
           width: "100%",
           borderRadius: "8px",
-          padding: "0px 0px 0px 10px",
         }}
         slidesPerView={slidesPerView}
         pagination={pagination ? { clickable: true } : false}
         spaceBetween={spaceBetween}
+        loop={loop}
         slidesOffsetBefore={slidesOffsetBefore}
         slidesOffsetAfter={slidesOffsetAfter}
       >
@@ -75,8 +75,8 @@ export default function PlaceCarousel({
             style={
               shouldUseAutoWidth
                 ? {
-                    width: itemSize,
-                  }
+                  width: itemSize,
+                }
                 : undefined
             }
           >

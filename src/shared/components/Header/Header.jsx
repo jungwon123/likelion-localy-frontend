@@ -1,7 +1,6 @@
 import styled, { css } from "styled-components";
 import { colors } from "@/styles/colors";
 import ChevronLeftIcon from "@/shared/components/icons/ChevronLeftIcon";
-import BookmarkIcon from "@/shared/components/icons/BookmarkIcon";
 
 const HeaderWrapper = styled.header`
   position: relative;
@@ -117,7 +116,7 @@ const Header = ({ leftIcon, rightIcon, text, onLeftClick, onRightClick }) => {
       </LeftSlot>
       <Title $useInter={useInterFont}>{text}</Title>
       <RightSlot onClick={onRightClick} aria-label="오른쪽 버튼">
-        {rightIcon || <BookmarkIcon />}
+        {rightIcon || <ChevronLeftIcon rotate={180} />}
       </RightSlot>
     </HeaderWrapper>
   );
