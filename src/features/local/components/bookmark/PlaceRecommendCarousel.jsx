@@ -11,7 +11,7 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 8px 0px;
+  padding: 8px ${(props) => props.$padding || 0}px;
   gap: 10px;
 `;
 
@@ -30,6 +30,9 @@ const PlaceImage = styled.div`
   width: ${(props) => props.$width || 148}px;
   height: ${(props) => props.$height || 148}px;
   background-color: ${colors.gray[200]};
+  background-image: ${(props) => props.$imageUrl ? `url(${props.$imageUrl})` : 'none'};
+  background-size: cover;
+  background-position: center;
   border-radius: 8px;
 `;
 
@@ -66,6 +69,7 @@ export default function PlaceRecommendCarousel({
     pagination = false,
     direction = "vertical",
     containerHeight,
+    padding = 0,
 }) {
     const autoplayConfig = autoplay
         ? {
@@ -75,7 +79,7 @@ export default function PlaceRecommendCarousel({
         : false;
 
     return (
-        <Container>
+        <Container $padding={padding}>
             {title && <Title>{title}</Title>}
             <Swiper
                 modules={[Autoplay, Pagination]}
@@ -100,7 +104,11 @@ export default function PlaceRecommendCarousel({
                         }
                     >
                         <PlaceDisplay>
-                            <PlaceImage $width={imageWidth} $height={imageHeight} />
+                            <PlaceImage
+                                $width={imageWidth}
+                                $height={imageHeight}
+                                $imageUrl={place.imageUrl}
+                            />
                             <PlaceContent>
                                 {place.category && <PlaceCategory>{place.category}</PlaceCategory>}
                                 {place.name && <PlaceName>{place.name}</PlaceName>}

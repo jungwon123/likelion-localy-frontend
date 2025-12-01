@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { useNavigate } from "react-router";
+import { useNavigate, useLocation } from "react-router";
 import { colors } from "@/styles/colors";
 import Icon from "../icons/BottomIcon";
 
@@ -32,7 +32,7 @@ const BottomNavigationContent = styled.div`
 
   &:hover {
     transform: scale(1.1);
-    color: ${colors.blue[100]};
+    color: ${colors.blue[50]};
   }
 
   &:active {
@@ -44,6 +44,8 @@ const NAV_ITEMS = ["home", "message", "folder", "clipboard", "user"];
 
 const Navigate = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+
   const NAV_PATHS = {
     home: "/",
     message: "/chat",
@@ -51,6 +53,15 @@ const Navigate = () => {
     clipboard: "/feedback",
     user: "/mypage",
   };
+
+  const isActive = (item) => {
+    const path = NAV_PATHS[item];
+    if (path === "/") {
+      return location.pathname === "/";
+    }
+    return location.pathname.startsWith(path);
+  };
+
   return (
     <BottomNavigationContainer>
       {NAV_ITEMS.map((item) => (
@@ -58,7 +69,12 @@ const Navigate = () => {
           key={item}
           onClick={() => navigate(NAV_PATHS[item])}
         >
-          <Icon name={item} size={24} />
+          <Icon
+            name={item}
+            size={24}
+            color={isActive(item) ? colors.blue[50] : colors.gray[600]}
+            isFilled={isActive(item)}
+          />
         </BottomNavigationContent>
       ))}
     </BottomNavigationContainer>

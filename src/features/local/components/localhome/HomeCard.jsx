@@ -4,6 +4,7 @@ import styled from "styled-components";
 import { colors } from "@/styles/colors";
 import { font } from "@/styles/font";
 import Emotions from "@/shared/components/icons/Emotions";
+import { getEmotionData } from "@/features/local/hooks/useEmotionMapper";
 
 const CardContainer = styled.div`
   position: relative;
@@ -65,18 +66,32 @@ const EmotionsContainer = styled.div`
   right: 18px;
 `;
 
-export default function HomeCard() {
+/**
+ * 홈 미션 카드 컴포넌트
+ * 단일 책임: 미션 진행 상태 UI 표시
+ * @param {string} emotionKeyword - 감정 키워드 (예: "외로움", "우울")
+ * @param {number} totalMissions - 전체 미션 수
+ * @param {number} progressPercent - 진행률 (0-100)
+ */
+export default function HomeCard({
+  emotionKeyword = "중립",
+  totalMissions = 4,
+  progressPercent = 0
+}) {
+  // 감정 데이터 가져오기
+  const emotionData = getEmotionData(emotionKeyword);
+
   return (
     <CardContainer>
-      <Mood>우울하신가요?</Mood>
+      <Mood>{emotionData.message}</Mood>
       <MissionTitle>로컬리 미션 완료하기</MissionTitle>
       <MissionDescription>
-        당신의 감정에 딱 맞는 장소 미션 4가지를 완료해보세요!
+        당신의 감정에 딱 맞는 장소 미션 {totalMissions}가지를 완료해보세요!
       </MissionDescription>
       <ProgressContainer>
         <ProgressBarWrapper>
           <ProgressBar
-            completed={25}
+            completed={progressPercent}
             bgColor={colors.blue[50]}
             height="10px"
             borderRadius="10px"
@@ -84,12 +99,12 @@ export default function HomeCard() {
           />
         </ProgressBarWrapper>
         <ProgressStatus>
-          <ProgressValue>25</ProgressValue>
+          <ProgressValue>{progressPercent}</ProgressValue>
           /100
         </ProgressStatus>
       </ProgressContainer>
       <EmotionsContainer>
-        <Emotions name="happy" size={48} />
+        <Emotions name={emotionData.iconName} size={48} />
       </EmotionsContainer>
     </CardContainer>
   );

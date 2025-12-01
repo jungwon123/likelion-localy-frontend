@@ -125,4 +125,17 @@ export const font = {
     font-size: 12px;
     font-weight: 400;
   `,
+  medium10: css`
+    font-size: 10px;
+    font-weight: 500;
+  `,
+  regular10: css`
+    font-size: 10px;
+    font-weight: 400;
+  `,
+
+  regular8: css`
+    font-size: 8px;
+    font-weight: 400;
+  `,
 };

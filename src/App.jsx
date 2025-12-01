@@ -8,6 +8,9 @@ import BookmarkPage from "@/pages/Bookmark";
 import FeedbackPage from "@/pages/Feedback";
 import MypagePage from "@/pages/Mypage";
 import MissionPage from "@/pages/Mission";
+import LocalDetailPage from "@/pages/LocalDetail";
+import ChallengePage from "@/pages/Challenge";
+import SpendPointsPage from "@/pages/SpendPoints";
 
 function App() {
   return (
@@ -23,6 +26,9 @@ function App() {
             <Route path="/feedback" element={<FeedbackPage />} />
             <Route path="/mypage" element={<MypagePage />} />
             <Route path="/mission" element={<MissionPage />} />
+            <Route path="/local-detail/:id" element={<LocalDetailPage />} />
+            <Route path="/challenge/:id" element={<ChallengePage />} />
+            <Route path="/spend-points" element={<SpendPointsPage />} />
           </Route>
         </Routes>
       </BrowserRouter>
