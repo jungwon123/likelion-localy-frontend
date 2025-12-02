@@ -12,6 +12,7 @@ import MyPage from "@/features/mypage/pages/MyPage";
 import EditMyInfoPage from "@/features/mypage/pages/EditMyInfoPage";
 import PremiumPlanPage from "@/features/premium/pages/PremiumPlanPage";
 import DashboardPage from "@/features/dashboard/pages/DashboardPage";
+import LoadingPage from "@/features/loading/pages/LoadingPage";
 import TestPage from "@/pages/test-page";
 
 function App() {
@@ -29,6 +30,7 @@ function App() {
               <Route path="/find-password" element={<FindPasswordPage />} />
               <Route path="/onboarding" element={<OnboardingPage />} />
               <Route path="/welcome" element={<WelcomePage />} />
+              <Route path="/loading" element={<LoadingPage />} />
               <Route path="/main" element={<MainPage />} />
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/mypage" element={<MyPage />} />
