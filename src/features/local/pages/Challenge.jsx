@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from "react-router";
 import Header from "@/shared/components/Header/Header";
 import BottomNavigation from "@/shared/components/bottom/BottomNavigation";
+import LoadingPage from "@/features/loading/pages/LoadingPage";
 import LocationError from "@/features/local/components/modal/LocationError";
 import MissionSucces from "@/features/local/components/modal/MissionSucces";
 import MissionInfoCard from "@/features/local/components/challenge/MissionInfoCard";
@@ -16,7 +17,7 @@ export default function ChallengePage() {
     const navigate = useNavigate();
 
     const { latitude, longitude } = useGeolocation();
-    const { data: missionData } = useMissionDetail(id, latitude, longitude);
+    const { data: missionData, loading } = useMissionDetail(id, latitude, longitude);
     const { verifyMission, isLoading: isVerifying } = useMissionVerify();
     const { successModal, errorModal, verifyResult, showSuccessModal, showErrorModal, closeModal } = useChallengeModal();
 
@@ -39,14 +40,8 @@ export default function ChallengePage() {
         result.success ? showSuccessModal(result) : showErrorModal(result);
     };
 
-    if (!missionData) {
-        return (
-            <>
-                <Header text="미션 진행" onLeftClick={handleLeftClick} rightIcon={null} />
-                <Container />
-                <BottomNavigation />
-            </>
-        );
+    if (loading || !missionData) {
+        return <LoadingPage />;
     }
 
     return (

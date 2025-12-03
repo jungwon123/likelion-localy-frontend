@@ -92,7 +92,7 @@ export default function OnboardingPage() {
     { id: "nature", label: t("nature"), icon: "🌳" },
     { id: "language", label: t("languageExchange"), icon: "🍸" },
     { id: "tourism", label: t("tourism"), icon: "🧳" },
-  ], [t, language]);
+  ], [t]);
 
   /**
    * 1단계 완료 버튼 활성화 조건

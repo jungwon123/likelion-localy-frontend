@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router";
 import Header from "@/shared/components/Header/Header";
 import BottomNavigation from "@/shared/components/bottom/BottomNavigation";
+import LoadingPage from "@/features/loading/pages/LoadingPage";
 import PointSummary from "@/features/local/components/mission/PointSummary";
 import MissionSummary from "@/features/local/components/mission/MissionSummary";
 import { useMissions, formatExpiresAt } from "@/features/local/hooks/useMissions";
@@ -10,7 +11,7 @@ export default function MissionPage() {
     const navigate = useNavigate();
 
     // 미션 데이터 가져오기
-    const { pointInfo, availableMissions, completedMissions, error } = useMissions();
+    const { pointInfo, availableMissions, completedMissions, loading, error } = useMissions();
 
     const handleUsePoints = () => {
         navigate("/local/spend-points");
@@ -38,6 +39,10 @@ export default function MissionPage() {
         isNew: mission.isNew,
         emotion: mission.emotion
     }));
+
+    if (loading && !pointInfo) {
+        return <LoadingPage />;
+    }
 
     return (
         <>

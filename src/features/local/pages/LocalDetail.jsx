@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from "react-router";
 import BottomNavigation from "@/shared/components/bottom/BottomNavigation";
 import Header from "@/shared/components/Header/Header";
+import LoadingPage from "@/features/loading/pages/LoadingPage";
 import BookmarkIcon from "@/shared/components/icons/BookmarkIcon";
 import { usePlaceDetail } from "@/features/local/hooks/usePlaceDetail";
 import { DetailContainer } from "@/features/local/styles/LocalDetail.styles";
@@ -11,18 +12,12 @@ import PlaceDescription from "@/features/local/components/localdetail/PlaceDescr
 export default function LocalDetailPage() {
     const navigate = useNavigate();
     const { id } = useParams();
-    const { data: placeData } = usePlaceDetail(id);
+    const { data: placeData, loading } = usePlaceDetail(id);
 
     const handleLeftClick = () => navigate(-1);
 
-    if (!placeData) {
-        return (
-            <>
-                <Header text="" onLeftClick={handleLeftClick} />
-                <DetailContainer />
-                <BottomNavigation />
-            </>
-        );
+    if (loading || !placeData) {
+        return <LoadingPage />;
     }
 
     return (

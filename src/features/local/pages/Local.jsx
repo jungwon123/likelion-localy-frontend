@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router";
 import BottomNavigation from "@/shared/components/bottom/BottomNavigation";
 import Header from "@/shared/components/Header/Header";
+import LoadingPage from "@/features/loading/pages/LoadingPage";
 import HomeCard from "@/features/local/components/localhome/HomeCard";
 import Recommend from "@/features/local/components/localhome/Recommend";
 import Banner from "@/features/local/components/localhome/Banner";
@@ -14,10 +15,10 @@ export default function LocalPage() {
   const navigate = useNavigate();
 
   // 위치 정보 가져오기
-  const { latitude, longitude, error: locationError } = useGeolocation();
+  const { latitude, longitude, loading: locationLoading, error: locationError } = useGeolocation();
 
   // 홈 데이터 가져오기
-  const { data, error: dataError } = useHomeData(latitude, longitude);
+  const { data, loading: dataLoading, error: dataError } = useHomeData(latitude, longitude);
 
   const handleRightClick = () => {
     navigate("/local/bookmark");
@@ -30,6 +31,10 @@ export default function LocalPage() {
   const handleMissionCardClick = () => {
     navigate("/local/mission");
   };
+
+  if ((locationLoading || dataLoading) && !data) {
+    return <LoadingPage />;
+  }
 
   return (
     <>
