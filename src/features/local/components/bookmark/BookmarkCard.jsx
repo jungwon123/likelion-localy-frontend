@@ -23,7 +23,7 @@ export default function BookmarkCard({ place, onPlaceClick, onBookmarkToggle, fo
     >
       <PlaceImage $imageUrl={place.thumbnailImage}>
         <BookmarkIconWrapper onClick={handleBookmarkClick}>
-          <BookmarkIcon color={colors.blue[50]} size={20} />
+          <BookmarkIcon color={colors.blue[50]} size={21} />
         </BookmarkIconWrapper>
       </PlaceImage>
       <PlaceContent>
