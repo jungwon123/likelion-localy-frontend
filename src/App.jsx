@@ -20,6 +20,8 @@ import MissionPage from "@/features/local/pages/Mission";
 import ChallengePage from "@/features/local/pages/Challenge";
 import SpendPointsPage from "@/features/local/pages/SpendPoints";
 import BookmarkPage from "@/features/local/pages/Bookmark";
+import NotificationPage from "@/features/notification/pages/NotificationPage";
+import LoadingPage from "@/features/loading/pages/LoadingPage";
 
 function App() {
   return (
@@ -48,6 +50,7 @@ function App() {
               <Route path="/local/challenge/:id" element={<ChallengePage />} />
               <Route path="/local/spend-points" element={<SpendPointsPage />} />
               <Route path="/local/bookmark" element={<BookmarkPage />} />
+              <Route path="/notifications" element={<NotificationPage />} />
             </Route>
           </Routes>
         </BrowserRouter>

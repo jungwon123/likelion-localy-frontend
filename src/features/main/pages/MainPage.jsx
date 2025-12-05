@@ -61,6 +61,7 @@ export default function MainPage() {
         text="Localy"
         onLeftClick={null}
         onRightClick={handleNotificationClick}
+        showBorder={false}
       />
       <ScrollableContent>
         <HomeCharacterCard onClick={handleChatClick} />
