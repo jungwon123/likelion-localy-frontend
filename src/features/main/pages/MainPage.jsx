@@ -9,6 +9,7 @@ import EmotionTrendSummary from "../components/EmotionTrendSummary";
 import BookmarkCarousel from "../components/BookmarkCarousel";
 import { PageWrapper, ScrollableContent } from "../styles/MainPage.styles";
 import { getRecentBookmarks, getWeekEmotionSummary } from "../api/homeApi";
+import alarmWebSocketService from "@/shared/services/alarmWebSocket";
 
 /**
  * @component MainPage
@@ -18,6 +19,7 @@ export default function MainPage() {
   const navigate = useNavigate();
   const [bookmarks, setBookmarks] = useState([]);
   const [emotionData, setEmotionData] = useState(null);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   // Fetch data on component mount
   useEffect(() => {
@@ -42,6 +44,24 @@ export default function MainPage() {
     fetchData();
   }, []);
 
+  // Setup WebSocket for alarm notifications
+  useEffect(() => {
+    // Connect to WebSocket if not already connected
+    if (!alarmWebSocketService.isConnected()) {
+      alarmWebSocketService.connect();
+    }
+
+    // Setup listener for unread count changes
+    alarmWebSocketService.setOnUnreadCountChange((count) => {
+      setUnreadCount(count);
+    });
+
+    // Cleanup on unmount
+    return () => {
+      alarmWebSocketService.setOnUnreadCountChange(null);
+    };
+  }, []);
+
   // Navigation handlers
   const handleNotificationClick = () => navigate("/notifications");
   const handleChatClick = () => navigate("/chat");
@@ -54,10 +74,9 @@ export default function MainPage() {
 
   return (
     <PageWrapper>
-      {/* ToDo: BellIcon에 알람 온 개수만큼 표시 */}
       <Header
         leftIcon={null}
-        rightIcon={<BellIcon color="#000" size={24} />}
+        rightIcon={<BellIcon color="#000" size={24} unreadCount={unreadCount} />}
         text="Localy"
         onLeftClick={null}
         onRightClick={handleNotificationClick}
