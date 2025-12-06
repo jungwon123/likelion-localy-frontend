@@ -9,6 +9,7 @@ import EmotionTrendSummary from "../components/EmotionTrendSummary";
 import BookmarkCarousel from "../components/BookmarkCarousel";
 import { PageWrapper, ScrollableContent } from "../styles/MainPage.styles";
 import { getRecentBookmarks, getWeekEmotionSummary } from "../api/homeApi";
+import { getProfile } from "@/features/mypage/api/mypageApi";
 
 /**
  * @component MainPage
@@ -18,11 +19,18 @@ export default function MainPage() {
   const navigate = useNavigate();
   const [bookmarks, setBookmarks] = useState([]);
   const [emotionData, setEmotionData] = useState(null);
+  const [nickname, setNickname] = useState("멋사");
 
   // Fetch data on component mount
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // Fetch profile
+        const profileResponse = await getProfile();
+        if (profileResponse.success && profileResponse.data?.nickname) {
+          setNickname(profileResponse.data.nickname);
+        }
+
         // Fetch bookmarks
         const bookmarkResponse = await getRecentBookmarks();
         if (bookmarkResponse.success) {
@@ -64,7 +72,7 @@ export default function MainPage() {
         showBorder={false}
       />
       <ScrollableContent>
-        <HomeCharacterCard onClick={handleChatClick} />
+        <HomeCharacterCard onClick={handleChatClick} nickname={nickname} />
         <QuickActionButtons
           onBookmarkClick={handleBookmarkClick}
           onMissionClick={handleMissionClick}
