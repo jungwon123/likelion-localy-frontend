@@ -5,6 +5,7 @@ import ChevronLeftIcon from "@/shared/components/icons/ChevronLeftIcon";
 const HeaderWrapper = styled.header`
   position: relative;
   width: 100%;
+
   height: 56px;
   box-sizing: border-box;
   background: #ffffff;
@@ -60,12 +61,13 @@ const Title = styled.h1`
           color: #000;
         `
       : css`
+          font-family: "Fredoka One";
           font-style: normal;
           font-weight: 400;
           font-size: 24px;
           line-height: 140%;
-          letter-spacing: -0.02em;
-          color: ${colors.blue[100]};
+          letter-spacing: -0.02rem;
+          color: ${colors.blue[50]};
         `}
 `;
 
@@ -91,9 +93,11 @@ const Header = ({
 
   return (
     <HeaderWrapper $showBorder={showBorder}>
-      <LeftSlot onClick={onLeftClick} aria-label="왼쪽 버튼">
-        {leftIcon || <ChevronLeftIcon />}
-      </LeftSlot>
+      {leftIcon !== null && (
+        <LeftSlot onClick={onLeftClick} aria-label="왼쪽 버튼">
+          {leftIcon || <ChevronLeftIcon />}
+        </LeftSlot>
+      )}
       <Title $useInter={useInterFont}>{text}</Title>
       {rightIcon !== null && (
         <RightSlot onClick={onRightClick} aria-label="오른쪽 버튼">

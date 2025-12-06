@@ -9,22 +9,39 @@ class WebSocketClient {
   }
 
   connect(userId, onMessageReceived, onError) {
+    const token = localStorage.getItem("accessToken");
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || "https://api.localy-maker.shop";
+    const wsUrl = `${baseUrl}/ws`;
+
+    console.log("Connecting to Chat WebSocket:", wsUrl);
+    console.log("User ID:", userId);
+    console.log("Token:", token ? "exists" : "missing");
+
     // STOMP 클라이언트 생성
     this.stompClient = new Client({
       // SockJS를 WebSocket factory로 사용
-      webSocketFactory: () => new SockJS("http://localhost:8080/ws"),
+      webSocketFactory: () => new SockJS(wsUrl, null, {
+        transports: ['websocket', 'xhr-streaming', 'xhr-polling'],
+        timeout: 10000,
+      }),
+
+      // JWT 토큰을 연결 헤더에 추가
+      connectHeaders: {
+        Authorization: `Bearer ${token}`,
+      },
 
       // 연결 성공 콜백
-      onConnect: () => {
-        console.log("STOMP Connected");
+      onConnect: (frame) => {
+        console.log("✅ Chat STOMP Connected", frame);
         this.connected = true;
 
-        // 채팅 응답 구독
+        // 채팅 응답 구독 (/topic/chat/{userId})
         const subscription = this.stompClient.subscribe(
-          `/topic/chat/${userId}/receiveChatResponse`,
+          `/topic/chat/${userId}`,
           (message) => {
             try {
               const data = JSON.parse(message.body);
+              console.log("📩 Received chat message:", data);
               if (onMessageReceived) {
                 onMessageReceived(data);
               }
@@ -40,28 +57,37 @@ class WebSocketClient {
 
       // 연결 끊김 콜백
       onDisconnect: () => {
-        console.log("STOMP Disconnected");
+        console.log("⚠️ Chat STOMP Disconnected");
         this.connected = false;
       },
 
       // 에러 콜백
       onStompError: (frame) => {
-        console.error("STOMP Error:", frame);
+        console.error("❌ Chat STOMP Error:", {
+          command: frame.command,
+          headers: frame.headers,
+          body: frame.body,
+        });
         this.connected = false;
         if (onError) {
           onError(new Error(frame.headers.message || "STOMP connection error"));
         }
       },
 
+      // WebSocket 에러 콜백
+      onWebSocketError: (error) => {
+        console.error("❌ Chat WebSocket error:", error);
+      },
+
       // 자동 재연결 설정
-      reconnectDelay: 3000, // 3초 후 재연결
+      reconnectDelay: 5000,
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,
 
       // 디버그 로그 (개발 환경에서만)
       debug: (str) => {
         if (import.meta.env.DEV) {
-          console.log("STOMP Debug:", str);
+          console.log("Chat STOMP Debug:", str);
         }
       },
     });
@@ -78,6 +104,7 @@ class WebSocketClient {
 
     return new Promise((resolve, reject) => {
       try {
+        const token = localStorage.getItem("accessToken");
         const payload = {
           userId: userId,
           sender: "USER",
@@ -85,9 +112,14 @@ class WebSocketClient {
           timestamp: new Date().toISOString(),
         };
 
-        // STOMP send 메서드 사용
+        console.log("📤 Sending chat message:", payload);
+
+        // STOMP publish 메서드 사용 (/app/send/)
         this.stompClient.publish({
-          destination: "/app/chat/sendMessage",
+          destination: "/app/send/",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
           body: JSON.stringify(payload),
         });
 

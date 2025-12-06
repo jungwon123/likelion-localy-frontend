@@ -1,6 +1,15 @@
 import apiClient from "@/shared/api/client";
 
 /**
+ * 프로필 조회
+ * GET /api/mypage/profile
+ */
+export const getProfile = async () => {
+  const response = await apiClient.get("/api/mypage/profile");
+  return response.data;
+};
+
+/**
  * 10. 관심사 조회
  * GET /api/auth/interests/info
  */

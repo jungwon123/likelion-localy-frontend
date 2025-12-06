@@ -9,13 +9,18 @@ import { useNavigate } from "react-router";
 import styled from "styled-components";
 import { colors } from "@/styles/colors";
 import webSocketClient from "@/features/chat/utils/webSocketClient";
+import {
+  getTodayChatMessages,
+  getPastChatMessages,
+} from "@/features/chat/api/chatApi";
+import { getCurrentUserId } from "@/shared/utils/jwtUtils";
 
 // ============ Styles ============
 
 const PageWrapper = styled.div`
   position: relative;
   width: 100%;
-  max-width: 375px;
+  max-width: 800px;
   height: 100vh;
   margin: 0 auto;
   overflow: hidden;
@@ -293,61 +298,105 @@ const ChatPage = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [currentChatId, setCurrentChatId] = useState("chat-1");
-  const [userId] = useState(1); // 실제로는 로그인한 사용자 ID
+  const [userId, setUserId] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [chatHistories, setChatHistories] = useState([]);
+  const [messages, setMessages] = useState([]);
 
-  // 채팅 데이터 (실제로는 API에서 가져올 데이터)
-  const [chatHistories] = useState([
-    {
-      id: "chat-1",
-      title: "친구와 다툼",
-      messages: [
-        {
-          id: 1,
-          type: "bot",
-          text: "오늘 하루는 어떠셨나요?",
-          timestamp: "(금) 오후 8:04",
-        },
-        {
-          id: 2,
-          type: "user",
-          texts: ["오늘은 너무 힘들었어.", "고향 친구와 다퉜거든"],
-        },
-        {
-          id: 3,
-          type: "bot",
-          text: `오늘 정말 힘들었겠어요.\n\n가까운 사람과 다투면 마음이 크게 흔들리고, 하루 전체가 무거워지죠.\n지금 그 감정 느끼는 건 아주 자연스러운 일이에요.\n\n혹시 괜찮다면,\n• 어떤 상황에서\n• 무엇 때문에\n• 어떤 감정이 들었는지\n조금만 더 얘기해줄 수 있을까요?\n\n당신 편에서 차분히 함께 정리해줄게요.`,
-          showDivider: true,
-        },
-      ],
-    },
-    {
-      id: "chat-2",
-      title: "고향 친구를 우연히 만남",
-      messages: [
-        {
-          id: 1,
-          type: "bot",
-          text: "무슨 일이 있었나요?",
-          timestamp: "(목) 오후 3:20",
-        },
-        {
-          id: 2,
-          type: "user",
-          texts: ["고향 친구를 우연히 만났어"],
-        },
-        {
-          id: 3,
-          type: "bot",
-          text: "반가운 만남이었겠네요! 어떤 이야기를 나누셨나요?",
-        },
-      ],
-    },
-  ]);
+  // API 데이터 변환 함수
+  const transformApiMessage = (apiMessage) => {
+    const dateArray = apiMessage.createdAt;
+    const date = new Date(
+      dateArray[0],
+      dateArray[1] - 1,
+      dateArray[2],
+      dateArray[3],
+      dateArray[4],
+      dateArray[5]
+    );
 
-  const [messages, setMessages] = useState(
-    chatHistories.find((chat) => chat.id === currentChatId)?.messages || []
-  );
+    const timestamp = date
+      .toLocaleString("ko-KR", {
+        weekday: "short",
+        hour: "numeric",
+        minute: "2-digit",
+      })
+      .replace(/^/, "(")
+      .replace(/ /, ") ");
+
+    if (apiMessage.role === "BOT") {
+      return {
+        id: apiMessage.id,
+        type: "bot",
+        text: apiMessage.text,
+        timestamp: timestamp,
+      };
+    } else {
+      return {
+        id: apiMessage.id,
+        type: "user",
+        texts: [apiMessage.text],
+        timestamp: timestamp,
+      };
+    }
+  };
+
+  // JWT에서 userId 추출
+  useEffect(() => {
+    const extractedUserId = getCurrentUserId();
+    if (extractedUserId) {
+      setUserId(extractedUserId);
+      console.log("Extracted userId from JWT:", extractedUserId);
+    } else {
+      console.error("Failed to extract userId from JWT");
+    }
+  }, []);
+
+  // 오늘 채팅 및 과거 채팅 로드
+  useEffect(() => {
+    const fetchChatData = async () => {
+      try {
+        setLoading(true);
+
+        // 오늘 채팅 가져오기
+        const todayResponse = await getTodayChatMessages();
+        if (todayResponse.success && todayResponse.data) {
+          const transformedMessages =
+            todayResponse.data.map(transformApiMessage);
+          setMessages(transformedMessages);
+        }
+
+        // 과거 채팅 가져오기 (사이드바용)
+        const pastResponse = await getPastChatMessages();
+        if (pastResponse.success && pastResponse.data) {
+          // 과거 채팅을 날짜별로 그룹화
+          const groupedChats = {};
+          pastResponse.data.forEach((msg) => {
+            const dateArray = msg.createdAt;
+            const dateKey = `${dateArray[0]}-${dateArray[1]}-${dateArray[2]}`;
+
+            if (!groupedChats[dateKey]) {
+              groupedChats[dateKey] = {
+                id: dateKey,
+                title: `${dateArray[1]}월 ${dateArray[2]}일 채팅`,
+                messages: [],
+              };
+            }
+            groupedChats[dateKey].messages.push(transformApiMessage(msg));
+          });
+
+          setChatHistories(Object.values(groupedChats));
+        }
+      } catch (error) {
+        console.error("Failed to fetch chat data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchChatData();
+  }, []);
 
   // 스크롤을 맨 아래로 이동하는 함수
   const scrollToBottom = () => {
@@ -361,8 +410,13 @@ const ChatPage = () => {
     scrollToBottom();
   }, [messages]);
 
-  // WebSocket 연결
+  // WebSocket 연결 (userId가 준비된 후에만 연결)
   useEffect(() => {
+    if (!userId) {
+      console.log("Waiting for userId to be extracted from JWT...");
+      return;
+    }
+
     const handleReceivedMessage = (data) => {
       // 봇 메시지를 받았을 때 처리
       const botMessage = {
@@ -387,12 +441,13 @@ const ChatPage = () => {
     };
 
     // WebSocket 연결 시작
-    console.log("WebSocket connected successfully");
+    console.log("Connecting to Chat WebSocket with userId:", userId);
     setIsConnected(true);
     webSocketClient.connect(userId, handleReceivedMessage, handleError);
 
     // 컴포넌트 언마운트 시 연결 종료
     return () => {
+      console.log("Disconnecting Chat WebSocket");
       webSocketClient.disconnect();
     };
   }, [userId]);
@@ -434,7 +489,7 @@ const ChatPage = () => {
   };
 
   const handleSend = async () => {
-    if (inputValue.trim()) {
+    if (inputValue.trim() && userId) {
       const messageText = inputValue.trim();
 
       // UI에 사용자 메시지 즉시 표시
@@ -457,120 +512,141 @@ const ChatPage = () => {
       } catch (error) {
         console.error("Failed to send message:", error);
       }
+    } else if (!userId) {
+      console.warn("Cannot send message: userId not available");
     }
   };
 
   return (
-    <PageWrapper>
-      <ChatContainer>
-        <Header
-          leftIcon={<ChevronLeftIcon />}
-          onLeftClick={onBack}
-          text="Localy"
-          rightIcon={<MenuIcon />}
-          onRightClick={toggleSidebar}
-        />
+    <>
+      <PageWrapper>
+        <ChatContainer>
+          <Header
+            leftIcon={<ChevronLeftIcon />}
+            onLeftClick={onBack}
+            text={"Localy"}
+            rightIcon={<MenuIcon rotate={180} />}
+            onRightClick={toggleSidebar}
+          />
 
-        <ChatContent ref={chatContentRef}>
-          {messages.map((message, index) => (
-            <div key={message.id}>
-              {message.timestamp && <Timestamp>{message.timestamp}</Timestamp>}
+          <ChatContent ref={chatContentRef}>
+            {loading ? (
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  height: "100%",
+                }}
+              >
+                <p>채팅을 불러오는 중...</p>
+              </div>
+            ) : (
+              messages.map((message, index) => (
+                <div key={message.id}>
+                  {message.timestamp && (
+                    <Timestamp>{message.timestamp}</Timestamp>
+                  )}
 
-              {message.type === "bot" ? (
-                <>
-                  {message.showDivider && index > 0 && <Divider />}
-                  <ChatMessage>
-                    <BotMessage>
-                      {message.text.split("\n").map((line, i) => (
-                        <span key={i}>
-                          {line}
-                          {i < message.text.split("\n").length - 1 && <br />}
-                        </span>
-                      ))}
-                    </BotMessage>
-                  </ChatMessage>
-                </>
-              ) : (
-                <UserChatWrapper
-                  $isFirstInGroup={
-                    index === 0 || messages[index - 1]?.type !== "user"
-                  }
-                  $isLastInGroup={
-                    index === messages.length - 1 ||
-                    messages[index + 1]?.type !== "user"
-                  }
-                >
-                  {message.texts.map((text, i) => {
-                    const position = getMessagePosition(
-                      messages,
-                      index,
-                      i,
-                      message.texts.length
-                    );
-                    return (
-                      <MessageBubble key={i} $position={position}>
-                        {text}
-                      </MessageBubble>
-                    );
-                  })}
-                </UserChatWrapper>
-              )}
-            </div>
-          ))}
-        </ChatContent>
+                  {message.type === "bot" ? (
+                    <>
+                      {message.showDivider && index > 0 && <Divider />}
+                      <ChatMessage>
+                        <BotMessage>
+                          {message.text.split("\n").map((line, i) => (
+                            <span key={i}>
+                              {line}
+                              {i < message.text.split("\n").length - 1 && (
+                                <br />
+                              )}
+                            </span>
+                          ))}
+                        </BotMessage>
+                      </ChatMessage>
+                    </>
+                  ) : (
+                    <UserChatWrapper
+                      $isFirstInGroup={
+                        index === 0 || messages[index - 1]?.type !== "user"
+                      }
+                      $isLastInGroup={
+                        index === messages.length - 1 ||
+                        messages[index + 1]?.type !== "user"
+                      }
+                    >
+                      {message.texts.map((text, i) => {
+                        const position = getMessagePosition(
+                          messages,
+                          index,
+                          i,
+                          message.texts.length
+                        );
+                        return (
+                          <MessageBubble key={i} $position={position}>
+                            {text}
+                          </MessageBubble>
+                        );
+                      })}
+                    </UserChatWrapper>
+                  )}
+                </div>
+              ))
+            )}
+          </ChatContent>
 
-        <FooterInput>
-          <InputWrapper>
-            <Input
-              placeholder="당신의 이야기를 들려주세요."
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyPress={(e) => e.key === "Enter" && handleSend()}
-            />
-            <MicButton>
-              <MicIcon color="#838383" size={24} />
-            </MicButton>
-            <SendButton onClick={handleSend} disabled={!inputValue.trim()}>
-              <ArrowUpIcon color="#5482FF" size={24} />
-            </SendButton>
-          </InputWrapper>
-        </FooterInput>
-      </ChatContainer>
+          <FooterInput>
+            <InputWrapper>
+              <Input
+                placeholder="당신의 이야기를 들려주세요."
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyPress={(e) => e.key === "Enter" && handleSend()}
+              />
+              <MicButton>
+                <MicIcon color="#838383" size={24} />
+              </MicButton>
+              <SendButton onClick={handleSend} disabled={!inputValue.trim()}>
+                <ArrowUpIcon color="#5482FF" size={24} />
+              </SendButton>
+            </InputWrapper>
+          </FooterInput>
+        </ChatContainer>
 
-      {/* Sidebar */}
-      <Dimmed $isOpen={sidebarOpen} onClick={toggleSidebar} />
-      <Sidebar $isOpen={sidebarOpen}>
-        <SidebarItem $marginBottom="27px" onClick={handleNewChat}>
-          <SidebarIconWrapper>
-            <PencilIcon color="#0D0D0D" size={20} />
-          </SidebarIconWrapper>
-          <SidebarText>새로운 채팅</SidebarText>
-        </SidebarItem>
-
-        <SidebarText
-          $bold
-          $size="14px"
-          $lineHeight="20px"
-          style={{ display: "block", marginBottom: "10px" }}
-        >
-          최근
-        </SidebarText>
-
-        {chatHistories.map((chat) => (
-          <SidebarItem
-            key={chat.id}
-            $marginBottom="10px"
-            onClick={() => handleSelectChat(chat.id)}
-          >
-            <SidebarText
-              $color={currentChatId === chat.id ? "#5482FF" : "#0D0D0D"}
-            >
-              {chat.title}
-            </SidebarText>
+        {/* Sidebar */}
+        <Dimmed $isOpen={sidebarOpen} onClick={toggleSidebar} />
+        <Sidebar $isOpen={sidebarOpen}>
+          <SidebarItem $marginBottom="27px" onClick={handleNewChat}>
+            <SidebarIconWrapper>
+              <PencilIcon color="#0D0D0D" size={20} />
+            </SidebarIconWrapper>
+            <SidebarText>새로운 채팅</SidebarText>
           </SidebarItem>
-        ))}
-      </Sidebar>
-    </PageWrapper>
+
+          <SidebarText
+            $bold
+            $size="14px"
+            $lineHeight="20px"
+            style={{ display: "block", marginBottom: "10px" }}
+          >
+            최근
+          </SidebarText>
+
+          {chatHistories.map((chat) => (
+            <SidebarItem
+              key={chat.id}
+              $marginBottom="10px"
+              onClick={() => handleSelectChat(chat.id)}
+            >
+              <SidebarText
+                $color={currentChatId === chat.id ? "#5482FF" : "#0D0D0D"}
+              >
+                {chat.title}
+              </SidebarText>
+            </SidebarItem>
+          ))}
+        </Sidebar>
+      </PageWrapper>
+    </>
   );
 };
 
