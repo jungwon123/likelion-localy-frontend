@@ -772,7 +772,8 @@ export default function DashboardPage() {
 
                   {/* 막대 위 퍼센트 표시 */}
                   {weekChartData.map((entry, index) => {
-                    if (entry.value === 0) return null; // 값이 0이면 표시하지 않음
+                    // 값이 0 이하이거나 null/undefined이면 표시하지 않음
+                    if (!entry || entry.value == null || entry.value <= 0) return null;
                     const barHeight = (entry.value / 100) * 180; // 180px is the chart height (240 - 60)
                     const barTop = 240 - barHeight;
                     // 요일 라벨 위치에 맞춰 퍼센트 라벨 위치 계산 (막대 중심에 맞춤)
@@ -1243,7 +1244,8 @@ export default function DashboardPage() {
 
               {/* 막대 위 퍼센트 표시 */}
               {weekChartData.map((entry, index) => {
-                if (entry.value === 0) return null; // 값이 0이면 표시하지 않음
+                // 값이 0 이하이거나 null/undefined이면 표시하지 않음
+                if (!entry || entry.value == null || entry.value <= 0) return null;
                 const barHeight = (entry.value / 100) * 180; // 180px is the chart height (240 - 60)
                 const barTop = 240 - barHeight;
                 // 요일 라벨 위치에 맞춰 퍼센트 라벨 위치 계산 (막대 중심에 맞춤)
