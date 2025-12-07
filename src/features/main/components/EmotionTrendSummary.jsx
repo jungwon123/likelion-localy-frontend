@@ -4,6 +4,8 @@ import {
   SummaryTitle,
   ChevronButton,
   TrendContent,
+  TrendMain,
+  TrendSub,
 } from "../styles/EmotionTrendSummary.styles";
 import ChevronLeftIcon from "@/shared/components/icons/ChevronLeftIcon";
 
@@ -18,18 +20,23 @@ import ChevronLeftIcon from "@/shared/components/icons/ChevronLeftIcon";
 const EmotionTrendSummary = ({ onViewMore, emotionData }) => {
   const renderContent = () => {
     if (!emotionData) {
-      return "감정 트렌드 데이터를 불러오는 중...";
+      return <TrendSub>감정 트렌드 데이터를 불러오는 중...</TrendSub>;
     }
 
     const { mostEmotion, happyPer } = emotionData;
 
+    // mostEmotion이 '없음'인 경우
+    if (mostEmotion === "없음") {
+      return <TrendSub>이번주 느낀 감정을 Localy와 공유해주세요!</TrendSub>;
+    }
+
     return (
       <>
-        이번주 가장 많이 느낀 감정은
-        <br />
-        '{mostEmotion}'이에요.
-        <br />
-        지난주 대비 행복지수가 {happyPer}% 올랐어요.
+        <TrendMain>
+          이번주 가장 많이 느낀 감정은
+          <br />'{mostEmotion}'이에요.
+        </TrendMain>
+        <TrendSub>지난주 대비 행복지수가 {happyPer}% 올랐어요. </TrendSub>
       </>
     );
   };

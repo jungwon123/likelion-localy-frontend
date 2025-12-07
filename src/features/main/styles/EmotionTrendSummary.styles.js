@@ -57,8 +57,32 @@ export const TrendContent = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12px;
 
   color: #0d0d0d;
   text-align: center;
+`;
+
+export const TrendMain = styled.h3`
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 100%;
+
+  text-align: center;
+  color: #0d0d0d;
+  margin: 0;
+  margin-bottom: 12px;
+`;
+
+export const TrendSub = styled.p`
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 500;
+  font-size: 10px;
+  line-height: 100%;
+
+  color: #838383;
+  text-align: center;
+  margin: 0;
 `;
