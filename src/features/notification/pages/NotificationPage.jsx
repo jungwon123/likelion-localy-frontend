@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import Header from "@/shared/components/Header/Header";
 import Footer from "@/shared/components/Footer/Footer";
@@ -6,30 +6,7 @@ import ChevronLeftIcon from "@/shared/components/icons/ChevronLeftIcon";
 import NotificationTabs from "../components/NotificationTabs";
 import NotificationCard from "../components/NotificationCard";
 import { PageWrapper, ScrollableContent } from "../styles/Page.styles";
-
-// Mock data for notifications
-const mockNotifications = [
-  {
-    id: 1,
-    type: "announcement",
-    isNew: true,
-    sender: "Localy",
-    date: "11월 24일",
-    title: "[v1.5 업데이트]\n안정성과 새로운 기능으로 더욱 강력해졌습니다.",
-    description:
-      "사용자 피드백을 반영하여 로컬 가이드 검색 엔진의 속도를 개선했습니다. 이제 AI의 감정 분석 리포트를 통해 주간 감정 변화를 한눈에 확인하실 수 있습니다.",
-  },
-  {
-    id: 2,
-    type: "announcement",
-    isNew: false,
-    sender: "Localy",
-    date: "11월 24일",
-    title: "[v1.5 업데이트]\n안정성과 새로운 기능으로 더욱 강력해졌습니다.",
-    description:
-      "사용자 피드백을 반영하여 로컬 가이드 검색 엔진의 속도를 개선했습니다. 이제 AI의 감정 분석 리포트를 통해 주간 감정 변화를 한눈에 확인하실 수 있습니다.",
-  },
-];
+import { getAlarms } from "../api/notificationApi";
 
 /**
  * @component NotificationPage
@@ -38,6 +15,54 @@ const mockNotifications = [
 export default function NotificationPage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("all");
+  const [notifications, setNotifications] = useState([]);
+
+  // Fetch alarms on component mount
+  useEffect(() => {
+    const fetchAlarms = async () => {
+      try {
+        const response = await getAlarms();
+
+        // Dev 환경에서만 API 응답 로깅
+        if (import.meta.env.DEV) {
+          console.log("📢 Alarms API Response:", {
+            success: response.success,
+            code: response.code,
+            message: response.message,
+            dataCount: response.data?.length,
+            data: response.data,
+          });
+        }
+
+        if (response.success && response.data) {
+          // Transform API data to notification format
+          const transformedNotifications = response.data.map((alarm) => ({
+            id: alarm.id,
+            type: alarm.type, // Keep uppercase (ANNOUNCEMENT or GENERAL)
+            isNew: !alarm.read,
+            sender: "Localy",
+            date: new Date(alarm.createdAt).toLocaleDateString("ko-KR", {
+              month: "long",
+              day: "numeric",
+            }),
+            title: alarm.title,
+            description: alarm.body,
+          }));
+
+          // Dev 환경에서만 변환된 데이터 로깅
+          if (import.meta.env.DEV) {
+            console.log("🔄 Transformed Notifications:", transformedNotifications);
+          }
+
+          setNotifications(transformedNotifications);
+        }
+      } catch (error) {
+        console.error("Failed to fetch alarms:", error);
+      }
+    };
+
+    fetchAlarms();
+  }, []);
 
   const handleBack = () => {
     navigate(-1);
@@ -50,8 +75,8 @@ export default function NotificationPage() {
   // Filter notifications based on active tab
   const filteredNotifications =
     activeTab === "all"
-      ? mockNotifications
-      : mockNotifications.filter((notif) => notif.type === "announcement");
+      ? notifications
+      : notifications.filter((notif) => notif.type === "ANNOUNCEMENT");
 
   return (
     <PageWrapper>
