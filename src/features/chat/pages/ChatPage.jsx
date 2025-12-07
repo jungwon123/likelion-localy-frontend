@@ -86,6 +86,8 @@ const BotMessage = styled.div`
   line-height: 140%;
   color: #0d0d0d;
   max-width: 288px;
+  word-wrap: break-word;
+  white-space: pre-wrap;
 `;
 
 const UserChatWrapper = styled.div`
@@ -257,7 +259,93 @@ const SidebarText = styled.span`
   color: ${(props) => props.$color || "#0D0D0D"};
 `;
 
+// Typing indicator styles
+const TypingIndicator = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 16px;
+  max-width: 60px;
+  background: #f3f3f3;
+  border-radius: 12px;
+  margin: 10px 20px;
+`;
+
+const TypingDot = styled.div`
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #838383;
+  animation: typing 1.4s infinite;
+  animation-delay: ${(props) => props.$delay || "0s"};
+
+  @keyframes typing {
+    0%,
+    60%,
+    100% {
+      opacity: 0.3;
+      transform: scale(0.8);
+    }
+    30% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+`;
+
 // ============ Helper Functions ============
+
+const formatTimestamp = (dateInput) => {
+  const date =
+    dateInput instanceof Date ? dateInput : new Date(dateInput ?? undefined);
+
+  if (isNaN(date?.getTime())) {
+    return "(시간 정보 없음)";
+  }
+
+  const parts = date
+    .toLocaleString("ko-KR", {
+      weekday: "short",
+      hour: "numeric",
+      minute: "2-digit",
+    })
+    .split(" ")
+    .filter(Boolean);
+
+  if (!parts.length) {
+    return "(시간 정보 없음)";
+  }
+
+  const [weekdayRaw, ...restParts] = parts;
+  const weekday = weekdayRaw?.replace(/[()]/g, "");
+  const rest = restParts.join(" ").trim();
+
+  if (weekday && rest) {
+    return `(${weekday}) ${rest}`;
+  }
+
+  return weekday ? `(${weekday})` : rest || "(시간 정보 없음)";
+};
+
+// 타임스탬프를 표시할지 여부를 결정하는 함수
+const shouldShowTimestamp = (messages, currentIndex) => {
+  const currentMsg = messages[currentIndex];
+  const prevMsg = messages[currentIndex - 1];
+
+  // 첫 번째 메시지는 항상 타임스탬프 표시
+  if (currentIndex === 0) return true;
+
+  // 이전 메시지가 없으면 표시
+  if (!prevMsg || !prevMsg.timestampDate || !currentMsg.timestampDate) {
+    return true;
+  }
+
+  // 30분(1800000ms) 이상 차이나면 타임스탬프 표시
+  const timeDiff = Math.abs(
+    currentMsg.timestampDate.getTime() - prevMsg.timestampDate.getTime()
+  );
+  return timeDiff >= 1800000; // 30분 = 30 * 60 * 1000ms
+};
 
 const getMessagePosition = (messages, currentIndex, textIndex, totalTexts) => {
   const currentMsg = messages[currentIndex];
@@ -303,6 +391,7 @@ const ChatPage = () => {
   const [loading, setLoading] = useState(true);
   const [chatHistories, setChatHistories] = useState([]);
   const [messages, setMessages] = useState([]);
+  const [isTyping, setIsTyping] = useState(false);
 
   // API 데이터 변환 함수
   const transformApiMessage = (apiMessage) => {
@@ -316,28 +405,24 @@ const ChatPage = () => {
       dateArray[5]
     );
 
-    const timestamp = date
-      .toLocaleString("ko-KR", {
-        weekday: "short",
-        hour: "numeric",
-        minute: "2-digit",
-      })
-      .replace(/^/, "(")
-      .replace(/ /, ") ");
+    const timestampDate = date;
+    const timestamp = formatTimestamp(timestampDate);
 
     if (apiMessage.role === "BOT") {
       return {
         id: apiMessage.id,
         type: "bot",
         text: apiMessage.text,
-        timestamp: timestamp,
+        timestamp,
+        timestampDate,
       };
     } else {
       return {
         id: apiMessage.id,
         type: "user",
         texts: [apiMessage.text],
-        timestamp: timestamp,
+        timestamp,
+        timestampDate,
       };
     }
   };
@@ -405,10 +490,12 @@ const ChatPage = () => {
     }
   };
 
-  // 메시지가 변경될 때마다 스크롤을 맨 아래로 이동
+  // 메시지가 변경되거나 로딩이 완료될 때 스크롤을 맨 아래로 이동
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    if (!loading) {
+      scrollToBottom();
+    }
+  }, [messages, loading]);
 
   // WebSocket 연결 (userId가 준비된 후에만 연결)
   useEffect(() => {
@@ -418,20 +505,34 @@ const ChatPage = () => {
     }
 
     const handleReceivedMessage = (data) => {
-      // 봇 메시지를 받았을 때 처리
+      // 타이핑 애니메이션 종료
+      setIsTyping(false);
+
+      if (import.meta.env.DEV) {
+        console.log("📩 Received bot message data:", data);
+      }
+
+      let timestampDate = new Date(data?.timestamp ?? undefined);
+      if (isNaN(timestampDate.getTime())) {
+        timestampDate = new Date();
+        if (import.meta.env.DEV) {
+          console.warn("⚠️ Invalid timestamp received, using current time");
+        }
+      }
+
       const botMessage = {
         id: Date.now(),
         type: "bot",
-        text: data.message,
-        timestamp: new Date(data.timestamp)
-          .toLocaleString("ko-KR", {
-            weekday: "short",
-            hour: "numeric",
-            minute: "2-digit",
-          })
-          .replace(/^/, "(")
-          .replace(/ /, ") "),
+        text: data?.text || data?.message || "",
+        timestamp: formatTimestamp(timestampDate),
+        timestampDate,
       };
+
+      if (import.meta.env.DEV) {
+        console.log("💬 Transformed bot message:", botMessage);
+        console.log("💬 Final text length:", botMessage.text?.length);
+      }
+
       setMessages((prev) => [...prev, botMessage]);
     };
 
@@ -463,17 +564,14 @@ const ChatPage = () => {
   const handleNewChat = () => {
     const newChatId = `chat-${Date.now()}`;
     setCurrentChatId(newChatId);
+    const now = new Date();
     setMessages([
       {
         id: 1,
         type: "bot",
         text: "안녕하세요! 오늘 하루는 어떠셨나요?",
-        timestamp: `(${new Date().toLocaleDateString("ko-KR", {
-          weekday: "short",
-        })}) ${new Date().toLocaleTimeString("ko-KR", {
-          hour: "numeric",
-          minute: "2-digit",
-        })}`,
+        timestamp: formatTimestamp(now),
+        timestampDate: now,
       },
     ]);
     setSidebarOpen(false);
@@ -491,12 +589,15 @@ const ChatPage = () => {
   const handleSend = async () => {
     if (inputValue.trim() && userId) {
       const messageText = inputValue.trim();
+      const now = new Date();
 
       // UI에 사용자 메시지 즉시 표시
       const newMessage = {
         id: messages.length + 1,
         type: "user",
         texts: [messageText],
+        timestampDate: now, // 비교를 위한 Date 객체 추가
+        timestamp: formatTimestamp(now),
       };
       setMessages((prev) => [...prev, newMessage]);
       setInputValue("");
@@ -504,13 +605,18 @@ const ChatPage = () => {
       // WebSocket으로 메시지 전송
       try {
         if (isConnected) {
-          await webSocketClient.sendMessage(userId, messageText);
+          // 타이핑 애니메이션 시작
+          setIsTyping(true);
+
+          await webSocketClient.sendMessage(messageText);
           console.log("Message sent successfully");
         } else {
           console.warn("WebSocket not connected, message not sent");
         }
       } catch (error) {
         console.error("Failed to send message:", error);
+        // 에러 발생 시 타이핑 애니메이션 종료
+        setIsTyping(false);
       }
     } else if (!userId) {
       console.warn("Cannot send message: userId not available");
@@ -544,7 +650,7 @@ const ChatPage = () => {
             ) : (
               messages.map((message, index) => (
                 <div key={message.id}>
-                  {message.timestamp && (
+                  {shouldShowTimestamp(messages, index) && message.timestamp && (
                     <Timestamp>{message.timestamp}</Timestamp>
                   )}
 
@@ -591,6 +697,13 @@ const ChatPage = () => {
                   )}
                 </div>
               ))
+            )}
+            {isTyping && (
+              <TypingIndicator>
+                <TypingDot $delay="0s" />
+                <TypingDot $delay="0.2s" />
+                <TypingDot $delay="0.4s" />
+              </TypingIndicator>
             )}
           </ChatContent>
 
