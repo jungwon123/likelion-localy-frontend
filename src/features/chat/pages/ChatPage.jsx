@@ -85,9 +85,14 @@ const BotMessage = styled.div`
   font-size: 14px;
   line-height: 140%;
   color: #0d0d0d;
-  max-width: 288px;
+  width: 100%;
+  max-width: calc(100% - 40px);
   word-wrap: break-word;
   white-space: pre-wrap;
+
+  @media (min-width: 768px) {
+    max-width: 36rem;
+  }
 `;
 
 const UserChatWrapper = styled.div`
@@ -166,10 +171,10 @@ const Input = styled.input`
   font-weight: 400;
   font-size: 14px;
   line-height: 17px;
-  color: #838383;
+  color: #0d0d0d;
 
   &::placeholder {
-    color: #838383;
+    color: ${(props) => (props.$hasValue ? "#0D0D0D" : "#838383")};
   }
 `;
 
@@ -446,10 +451,29 @@ const ChatPage = () => {
 
         // 오늘 채팅 가져오기
         const todayResponse = await getTodayChatMessages();
-        if (todayResponse.success && todayResponse.data) {
+        if (
+          todayResponse.success &&
+          todayResponse.data &&
+          todayResponse.data.length > 0
+        ) {
           const transformedMessages =
             todayResponse.data.map(transformApiMessage);
           setMessages(transformedMessages);
+        } else if (
+          todayResponse.success &&
+          (!todayResponse.data || todayResponse.data.length === 0)
+        ) {
+          // 오늘 채팅이 없으면 초기 인사 메시지만 UI에 표시
+          const now = new Date();
+          setMessages([
+            {
+              id: "initial-greeting",
+              type: "bot",
+              text: "안녕하세요! 오늘 하루는 어떠셨나요?",
+              timestamp: formatTimestamp(now),
+              timestampDate: now,
+            },
+          ]);
         }
 
         // 과거 채팅 가져오기 (사이드바용)
@@ -650,9 +674,10 @@ const ChatPage = () => {
             ) : (
               messages.map((message, index) => (
                 <div key={message.id}>
-                  {shouldShowTimestamp(messages, index) && message.timestamp && (
-                    <Timestamp>{message.timestamp}</Timestamp>
-                  )}
+                  {shouldShowTimestamp(messages, index) &&
+                    message.timestamp && (
+                      <Timestamp>{message.timestamp}</Timestamp>
+                    )}
 
                   {message.type === "bot" ? (
                     <>
@@ -712,6 +737,7 @@ const ChatPage = () => {
               <Input
                 placeholder="당신의 이야기를 들려주세요."
                 value={inputValue}
+                $hasValue={inputValue.length > 0}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={(e) => e.key === "Enter" && handleSend()}
               />
