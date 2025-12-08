@@ -259,9 +259,16 @@ export default function SignupPage() {
               onChange={(e) => setEmail(e.target.value)}
               $hasError={showEmailError}
             />
-            {/* 이메일 형식 에러 메시지 */}
-            {showEmailError && (
+            {/* 이메일 형식 에러 메시지 또는 힌트 표시 */}
+            {showEmailError ? (
               <S.ErrorMessage>올바른 이메일 형식이 아닙니다.</S.ErrorMessage>
+            ) : (
+              // 이메일을 입력했지만 형식이 올바르지 않을 때만 힌트 표시
+              email.trim() !== "" && !isEmailValid && (
+                <S.PasswordHint>
+                  올바른 이메일 형식을 입력해주세요. (예: example@email.com)
+                </S.PasswordHint>
+              )
             )}
           </S.InputWrapper>
           {/* 인증받기/재전송 버튼 */}
@@ -347,8 +354,8 @@ export default function SignupPage() {
           {showPasswordError ? (
             <S.ErrorMessage>비밀번호 형식이 올바르지 않습니다.</S.ErrorMessage>
           ) : (
-            // 비밀번호를 입력했지만 조건을 만족하지 않을 때만 힌트 표시 (조건 만족 시 사라짐)
-            password.trim() !== "" && !isPasswordValid && (
+            // 비밀번호를 입력하지 않았거나 조건을 만족하지 않을 때 힌트 표시 (조건 만족 시 사라짐)
+            (password.trim() === "" || !isPasswordValid) && (
               <S.PasswordHint>
                 영문 소문자 최소 8 ~ 최대 16자리, 특수문자포함 ( ! # $ % & * @ ^ )
               </S.PasswordHint>
