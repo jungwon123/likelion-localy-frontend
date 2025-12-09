@@ -12,7 +12,7 @@ import { Container, ErrorMessage } from "@/features/local/styles/Bookmark.styles
 
 export default function BookmarkPage() {
   const navigate = useNavigate();
-  const [sortType, setSortType] = useState('latest');
+  const [sortType, setSortType] = useState('RECENT');
 
   const { bookmarks, loading, error, hasNext, fetchMore, refresh } = useBookmarks(sortType);
   const { ref: lastElementRef } = useInfiniteScroll(fetchMore, hasNext, false);

@@ -6,7 +6,7 @@ import apiClient from '@/shared/api/client';
  * @returns {Promise<Object>} { bookmarks, hasNext, lastBookmarkId }
  */
 export async function getBookmarks(params) {
-    const response = await apiClient.get('/api/bookmarks', { params });
+    const response = await apiClient.get('/api/places/bookmarks', { params });
     const result = response.data;
 
     if (result.success) {

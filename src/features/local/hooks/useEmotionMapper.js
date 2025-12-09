@@ -6,11 +6,17 @@
 // 한글 키워드 -> 영문 아이콘 이름 매핑
 const emotionKeywordToIcon = {
   '불안': 'anxiety',
+  '불안함': 'anxiety',
   '우울': 'depressed',
+  '우울함': 'depressed',
   '외로움': 'depressed',
   '행복': 'happy',
+  '행복함': 'happy',
   '분노': 'mad',
+  '분노함': 'mad',
   '중립': 'normal',
+  '평온': 'normal',
+  '평온함': 'normal',
   '슬픔': 'sad',
 };
 
@@ -32,6 +38,16 @@ const emotionMessages = {
   'mad': '화나셨나요?',
   'normal': '평온하신가요?',
   'sad': '슬프신가요?',
+};
+
+// API 응답 감정 -> 한글 메시지 직접 매핑
+const emotionApiMessages = {
+  '불안함': '불안하신가요?',
+  '우울함': '우울하신가요?',
+  '행복함': '행복하신가요?',
+  '분노함': '화나셨나요?',
+  '평온함': '평온하신가요?',
+  '슬픔': '슬프신가요?',
 };
 
 /**

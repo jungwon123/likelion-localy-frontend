@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import ProgressBar from "@ramonak/react-progress-bar";
 import styled from "styled-components";
 import { colors } from "@/styles/colors";
 import { font } from "@/styles/font";
 import Emotions from "@/shared/components/icons/Emotions";
 import { getEmotionData } from "@/features/local/hooks/useEmotionMapper";
+import { getDailyFeedback } from "@/features/dashboard/api/dashboardApi";
+
 
 const CardContainer = styled.div`
   position: relative;
@@ -75,23 +77,49 @@ const EmotionsContainer = styled.div`
 /**
  * 홈 미션 카드 컴포넌트
  * 단일 책임: 미션 진행 상태 UI 표시
- * @param {string} emotionKeyword - 감정 키워드 (예: "외로움", "우울")
+ * KoBERT 감정 분석 결과를 getDailyFeedback API로 가져와서 표시
  * @param {number} totalMissions - 전체 미션 수
  * @param {number} progressPercent - 진행률 (0-100)
  * @param {function} onClick - 클릭 이벤트 핸들러
  */
 export default function HomeCard({
-  emotionKeyword = "중립",
   totalMissions = 4,
   progressPercent = 0,
   onClick
 }) {
+  // KoBERT 감정 분석 결과 상태
+  const [emotionKeyword, setEmotionKeyword] = useState("중립");
+  const [isLoading, setIsLoading] = useState(true);
+
+  // API에서 감정 분석 결과 가져오기
+  useEffect(() => {
+    const fetchEmotionData = async () => {
+      try {
+        setIsLoading(true);
+        const response = await getDailyFeedback();
+
+        // mostFrequentEmotion에서 KoBERT 분석 결과 가져오기
+        if (response?.mostFrequentEmotion) {
+          setEmotionKeyword(response.mostFrequentEmotion);
+        }
+      } catch (error) {
+        console.error("감정 데이터 로딩 실패:", error);
+        // 에러 시 기본값 유지
+        setEmotionKeyword("중립");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchEmotionData();
+  }, []);
+
   // 감정 데이터 가져오기
   const emotionData = getEmotionData(emotionKeyword);
 
   return (
     <CardContainer onClick={onClick}>
-      <Mood>{emotionData.message}</Mood>
+      <Mood>{isLoading ? "감정 분석 중..." : emotionData.message}</Mood>
       <MissionTitle>로컬리 미션 완료하기</MissionTitle>
       <MissionDescription>
         당신의 감정에 딱 맞는 장소 미션 {totalMissions}가지를 완료해보세요!
@@ -112,7 +140,7 @@ export default function HomeCard({
         </ProgressStatus>
       </ProgressContainer>
       <EmotionsContainer>
-        <Emotions name={emotionData.iconName} size={48} />
+        <Emotions name={isLoading ? "normal" : emotionData.iconName} size={48} />
       </EmotionsContainer>
     </CardContainer>
   );
