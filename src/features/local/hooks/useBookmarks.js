@@ -7,7 +7,7 @@ import { getBookmarks } from '@/features/local/api/localApi';
  * @param {number} size - 한 번에 가져올 개수
  * @returns {Object} { bookmarks, loading, error, hasNext, fetchMore, refresh }
  */
-export function useBookmarks(sortType = 'latest', size = 20) {
+export function useBookmarks(sortType = 'RECENT', size = 20) {
   const [bookmarks, setBookmarks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [fetchingMore, setFetchingMore] = useState(false);
