@@ -395,16 +395,18 @@ export default function OnboardingPage() {
             />
           </svg>
         </S.BackButton>
-        <S.Title>{t("onboarding")}</S.Title>
+        <S.Title>{isInterestChange ? "관심사 변경" : "사용자 설정"}</S.Title>
         <S.HeaderSpacer />
       </S.Header>
 
-      {/* 단계 인디케이터 */}
-      <S.StepIndicator>
-        <S.StepBar $isActive={currentStep >= 1} />
-        <S.StepBar $isActive={currentStep >= 2} />
-        <S.StepBar $isActive={currentStep >= 3} />
-      </S.StepIndicator>
+      {/* 단계 인디케이터 - 관심사 변경 모드일 때는 숨김 */}
+      {!isInterestChange && (
+        <S.StepIndicator>
+          <S.StepBar $isActive={currentStep >= 1} />
+          <S.StepBar $isActive={currentStep >= 2} />
+          <S.StepBar $isActive={currentStep >= 3} />
+        </S.StepIndicator>
+      )}
 
       {/* 단계별 컨텐츠 */}
       <S.ContentWrapper>

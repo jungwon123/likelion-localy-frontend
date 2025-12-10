@@ -403,8 +403,34 @@ export default function DashboardPage() {
           </S.Pill>
         </S.PillsContainer>
 
+        {/* 데이터 없을 때 안내 메시지 */}
+        {selectedPeriod === "Daily" && dailyChartData.length === 0 && (
+          <S.ChartSection style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '200px' }}>
+            <div style={{ textAlign: 'center', color: '#838383', fontSize: '14px' }}>
+              아직 오늘의 감정 데이터가 없습니다.<br />
+              챗봇과 대화를 나누시면 감정 데이터가 수집됩니다.
+            </div>
+          </S.ChartSection>
+        )}
+        {selectedPeriod === "Week" && weekChartData.length === 0 && (
+          <S.ChartSection style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '200px' }}>
+            <div style={{ textAlign: 'center', color: '#838383', fontSize: '14px' }}>
+              아직 이번 주의 감정 데이터가 없습니다.<br />
+              챗봇과 대화를 나누시면 감정 데이터가 수집됩니다.
+            </div>
+          </S.ChartSection>
+        )}
+        {selectedPeriod === "Month" && Object.keys(monthCalendarDataMap).length === 0 && (
+          <S.MonthChartSection style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '200px' }}>
+            <div style={{ textAlign: 'center', color: '#838383', fontSize: '14px' }}>
+              아직 이번 달의 감정 데이터가 없습니다.<br />
+              챗봇과 대화를 나누시면 감정 데이터가 수집됩니다.
+            </div>
+          </S.MonthChartSection>
+        )}
+
         {/* 차트 섹션 */}
-        {selectedPeriod === "Month" ? (
+        {selectedPeriod === "Month" && Object.keys(monthCalendarDataMap).length > 0 ? (
           <S.MonthChartSection>
             <S.MonthChartTitle>월별 감정 캘린더</S.MonthChartTitle>
             {/* 년도/월 선택 필드 - 하나로 통합 */}
@@ -599,7 +625,7 @@ export default function DashboardPage() {
               );
             })}
           </S.MonthChartSection>
-        ) : (
+        ) : selectedPeriod === "Month" ? null : (
           <S.ChartSection>
             <S.ChartTitle>
               {selectedPeriod === "Week" ? "이번주 감정 로그" : "오늘의 감정 트래커"}
@@ -818,7 +844,7 @@ export default function DashboardPage() {
         )}
 
         {/* 리스트 섹션 - Daily와 Month 뷰에서 표시 */}
-        {selectedPeriod === "Daily" && (
+        {selectedPeriod === "Daily" && dailyChartData.length > 0 && (
           <S.ListSection>
             <S.ListHeader>
               <S.ListTitle>오늘 가장 많이 느낀 감정은</S.ListTitle>
@@ -847,7 +873,7 @@ export default function DashboardPage() {
         )}
 
         {/* Month 뷰 - 이번 달 감정 별 횟수 */}
-        {selectedPeriod === "Month" && (
+        {selectedPeriod === "Month" && Object.keys(monthCalendarDataMap).length > 0 && (
           <S.MonthListSection>
             <S.MonthListTitle>이번 달 감정 별 횟수</S.MonthListTitle>
             <S.MonthEmotionList>
@@ -876,8 +902,6 @@ export default function DashboardPage() {
           triggerRef={dateFieldRef}
         autoClose={selectedMode === "month"} // 월 선택 시에만 자동 닫기
       />
-      {selectedPeriod === "Month" ? (
-        <S.MonthChartSection>
           <S.MonthChartTitle>월별 감정 캘린더</S.MonthChartTitle>
           {/* 년도/월 선택 필드 - 하나로 통합 */}
           <S.MonthDateHeader ref={dateFieldRef} onClick={handleDateFieldClick} style={{ cursor: 'pointer' }}>
@@ -1071,11 +1095,7 @@ export default function DashboardPage() {
             );
           })}
         </S.MonthChartSection>
-      ) : (
-        <S.ChartSection>
-          <S.ChartTitle>
-            {selectedPeriod === "Week" ? "이번주 감정 로그" : "오늘의 감정 트래커"}
-          </S.ChartTitle>
+        ) : null}
 
         {/* 차트 영역 */}
         <S.ChartArea>

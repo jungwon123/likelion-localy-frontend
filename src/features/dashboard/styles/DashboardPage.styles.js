@@ -2,13 +2,15 @@ import styled from "styled-components";
 
 export const Container = styled.div`
   position: relative;
-  width: 375px;
-  min-height: 100vh;
-  height: 100vh;
+  width: 100%;
+  max-width: 375px;
+  min-height: calc(100vh - 120px); /* 헤더와 푸터 공간 제외 */
   background: #FFFFFF;
   margin: 0 auto;
-  overflow-y: auto;
-  overflow-x: visible;
+  padding-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 `;
 
 export const Header = styled.header`
@@ -26,11 +28,10 @@ export const Header = styled.header`
 `;
 
 export const LogoWrapper = styled.div`
-  position: absolute;
+  position: relative;
   width: 74px;
   height: 34px;
-  left: calc(50% - 74px/2 + 2.5px);
-  top: 11px;
+  margin: 20px auto 16px; /* 상단 여백과 하단 여백 고정 */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -93,11 +94,11 @@ export const Badge = styled.div`
 
 export const ChartSection = styled.div`
   box-sizing: border-box;
-  position: absolute;
-  width: 343px;
-  height: 282px;
-  left: 16px;
-  top: 165px;
+  position: relative;
+  width: 100%;
+  max-width: 343px;
+  min-height: 282px;
+  margin: 0 auto 20px; /* 상단 여백 제거, 하단 여백 추가 */
   background: #FFFFFF;
   border: 1px solid #E0E0E0;
   border-radius: 8px;
@@ -122,11 +123,11 @@ export const ChartTitle = styled.div`
 `;
 
 export const PillsContainer = styled.div`
-  position: absolute;
-  width: 223px;
+  position: relative;
+  width: 100%;
+  max-width: 223px;
   height: 29px;
-  left: 16px;
-  top: 116px; /* 120px -> 116px로 변경하여 위쪽 여백을 아래쪽 여백(16px)과 동일하게 */
+  margin: 0 auto 16px; /* 상단 여백 제거, 하단 여백 추가 */
   display: flex;
   flex-direction: row;
   align-items: flex-start;
@@ -226,11 +227,11 @@ export const ChartLine = styled.div`
 
 export const ListSection = styled.div`
   box-sizing: border-box;
-  position: absolute;
-  width: 343px;
-  height: 170px;
-  left: 17px;
-  top: 463px;
+  position: relative;
+  width: 100%;
+  max-width: 343px;
+  min-height: 170px;
+  margin: 0 auto 20px;
   background: #FFFFFF;
   border: 1px solid #E0E0E0;
   border-radius: 8px;
@@ -482,11 +483,11 @@ export const TabIcon = styled.button`
 // Month 뷰 스타일
 export const MonthChartSection = styled.div`
   box-sizing: border-box;
-  position: absolute;
-  width: 351px; /* 343px -> 351px로 증가하여 일요일 날짜가 잘리지 않도록 */
-  height: 323px;
-  left: 16px;
-  top: 165px;
+  position: relative;
+  width: 100%;
+  max-width: 351px; /* 343px -> 351px로 증가하여 일요일 날짜가 잘리지 않도록 */
+  min-height: 323px;
+  margin: 0 auto 20px; /* 상단 여백 제거, 하단 여백 추가 */
   background: #FFFFFF;
   border: 1px solid #E0E0E0;
   border-radius: 8px;
@@ -617,11 +618,11 @@ export const MonthCalendarGridLine = styled.div`
 
 export const MonthListSection = styled.div`
   box-sizing: border-box;
-  position: absolute;
-  width: 343px;
-  height: 153px;
-  left: 17px;
-  top: 504px;
+  position: relative;
+  width: 100%;
+  max-width: 343px;
+  min-height: 153px;
+  margin: 0 auto 20px;
   background: #FFFFFF;
   border: 1px solid #E0E0E0;
   border-radius: 8px;
