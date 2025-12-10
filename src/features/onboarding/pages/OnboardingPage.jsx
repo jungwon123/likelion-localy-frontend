@@ -19,7 +19,8 @@ export default function OnboardingPage() {
   
   // URL 쿼리 파라미터에서 초기 스텝 가져오기 (기본값: 1)
   const initialStep = parseInt(searchParams.get("step") || "1", 10);
-  const isInterestChange = initialStep === 2; // 관심사 변경 모드인지 확인
+  // 마이페이지에서 관심사 변경으로 들어온 경우 (step=2 또는 from=mypage)
+  const isInterestChange = initialStep === 2 || searchParams.get("from") === "mypage";
   
   // 현재 단계 상태 (1, 2, 3)
   const [currentStep, setCurrentStep] = useState(initialStep);
@@ -100,36 +101,88 @@ export default function OnboardingPage() {
     { id: "tourism", label: t("tourism"), icon: "🧳", character: "depression" },
   ], [t]);
 
-  // 관심사 변경 모드일 때 기존 관심사 가져오기
+  // 온보딩 페이지 진입 시 기존 사용자 정보 가져오기
   useEffect(() => {
-    if (isInterestChange) {
-      const fetchExistingInterests = async () => {
-        try {
-          const response = await getInterests();
-          const responseData = response?.data || response;
-          // 기존 관심사가 있다면 설정
-          if (responseData) {
-            // API 응답 구조에 따라 goodMoodInterests와 badMoodInterests를 가져옴
-            const goodMoodInterests = responseData.goodMoodInterests || responseData.interests || [];
-            const badMoodInterests = responseData.badMoodInterests || [];
-            
-            setExistingInterests(goodMoodInterests);
-            setExistingBadMoodInterests(badMoodInterests);
-            
-            // 현재 단계에 따라 선택된 활동 설정
-            if (currentStep === 2) {
-              setSelectedActivities(goodMoodInterests);
-            } else if (currentStep === 3) {
-              setSelectedBadMoodActivities(badMoodInterests);
+    const fetchExistingData = async () => {
+      try {
+        const response = await getInterests();
+        const responseData = response?.data || response;
+        
+        if (responseData) {
+          // 1단계: 언어 및 국적 설정
+          if (responseData.language) {
+            const langOption = languageOptions.find(opt => opt.value === responseData.language);
+            if (langOption) {
+              setDisplayLanguage(langOption.label);
+              setDisplayLanguageValue(responseData.language);
+              // 언어가 변경되면 언어 컨텍스트도 업데이트
+              changeLanguage(responseData.language);
             }
           }
-        } catch (error) {
-          console.error("Failed to fetch existing interests:", error);
+          
+          if (responseData.nationality) {
+            const natOption = nationalityOptions.find(opt => opt.value === responseData.nationality);
+            if (natOption) {
+              setNationality(natOption.label);
+              setNationalityValue(responseData.nationality);
+            }
+          }
+          
+          // 2-3단계: 관심사 설정
+          // API 응답 구조: { interests: ["음식", "문화", ...] }
+          // goodMoodInterests와 badMoodInterests가 분리되어 있으면 사용, 없으면 interests 배열 사용
+          const allInterests = responseData.interests || [];
+          const goodMoodInterests = responseData.goodMoodInterests || allInterests;
+          const badMoodInterests = responseData.badMoodInterests || [];
+          
+          // API 응답의 한글 문자열을 활동 ID로 변환하는 함수
+          const convertInterestLabelToId = (label) => {
+            // 활동 옵션에서 label이 일치하는 항목 찾기
+            const activity = activityOptions.find(opt => opt.label === label);
+            return activity ? activity.id : null;
+          };
+          
+          // 한글 문자열을 활동 ID로 변환
+          const goodMoodIds = goodMoodInterests
+            .map(label => convertInterestLabelToId(label))
+            .filter(id => id !== null);
+          const badMoodIds = badMoodInterests
+            .map(label => convertInterestLabelToId(label))
+            .filter(id => id !== null);
+          
+          setExistingInterests(goodMoodIds);
+          setExistingBadMoodInterests(badMoodIds);
+          
+          // 관심사 변경 모드일 때 현재 단계에 맞게 선택된 활동 즉시 설정
+          if (isInterestChange) {
+            if (currentStep === 2 && goodMoodIds.length > 0) {
+              setSelectedActivities(goodMoodIds);
+            } else if (currentStep === 3 && badMoodIds.length > 0) {
+              setSelectedBadMoodActivities(badMoodIds);
+            }
+          }
         }
-      };
-      fetchExistingInterests();
+      } catch (error) {
+        console.error("Failed to fetch existing user data:", error);
+      }
+    };
+    
+    fetchExistingData();
+  }, [isInterestChange, currentStep, activityOptions]);
+
+  // 현재 단계가 변경될 때마다 해당 단계의 선택된 활동 설정
+  // existingInterests가 설정된 후에도 현재 단계에 맞게 선택된 활동 설정
+  useEffect(() => {
+    if (currentStep === 2) {
+      if (existingInterests.length > 0) {
+        setSelectedActivities(existingInterests);
+      }
+    } else if (currentStep === 3) {
+      if (existingBadMoodInterests.length > 0) {
+        setSelectedBadMoodActivities(existingBadMoodInterests);
+      }
     }
-  }, [isInterestChange, currentStep]);
+  }, [currentStep, existingInterests, existingBadMoodInterests]);
 
   /**
    * 1단계 완료 버튼 활성화 조건

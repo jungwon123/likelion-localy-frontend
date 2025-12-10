@@ -103,7 +103,7 @@ export const ChartSection = styled.div`
   border: 1px solid #E0E0E0;
   border-radius: 8px;
   z-index: 1;
-  overflow: visible;
+  overflow: hidden;
 `;
 
 export const ChartTitle = styled.div`
@@ -164,15 +164,20 @@ export const Pill = styled.button`
 export const ChartArea = styled.div`
   position: relative;
   width: 100%;
-  height: 100%;
+  min-height: 282px;
+  height: 282px;
   overflow: hidden;
+  padding-top: 44px;
+  padding-left: 16px;
+  padding-right: 16px;
+  padding-bottom: 30px;
 `;
 
 export const GridLine = styled.div`
   position: absolute;
-  width: 311px;
+  width: ${props => props.$left ? `calc(100% - ${props.$left}px - 16px)` : '311px'};
   height: 0px;
-  left: 42px;
+  left: ${props => props.$left || 42}px;
   top: ${props => props.$top}px;
   border: ${props => props.$top === 240 ? "1px solid #E0E0E0" : "1px solid rgba(230, 230, 230, 0.5)"};
   z-index: 0;
@@ -214,15 +219,17 @@ export const EmotionCharacter = styled.div`
 
 export const ChartLine = styled.div`
   position: absolute;
-  width: 272px;
+  width: calc(100% - 54px); /* 좌우 padding(16px * 2) + 캐릭터 영역(22px) 제외 */
+  max-width: 272px;
   height: 180px;
-  min-width: 272px;
+  min-width: 200px;
   min-height: 180px;
-  left: 42px;
+  left: 38px; /* 그래프 선만 오른쪽으로 이동 */
   top: 60px;
   z-index: 1;
   pointer-events: none;
   overflow: visible;
+  box-sizing: border-box;
 `;
 
 export const ListSection = styled.div`
@@ -235,6 +242,8 @@ export const ListSection = styled.div`
   background: #FFFFFF;
   border: 1px solid #E0E0E0;
   border-radius: 8px;
+  display: flex;
+  flex-direction: column;
 `;
 
 export const ListHeader = styled.div`
